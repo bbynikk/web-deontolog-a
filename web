@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COIICV - Colegio Oficial de Ingenieros en Informática de la Comunidad Valenciana</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* =========================================================
+           VARIABLES Y DISEÑO BASE
+           ========================================================= */
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --primary: #0ea5e9;
+            --primary-hover: #0284c7;
+            --accent: #facc15;
+            --text-main: #f8fafc;
+            --text-muted: #cbd5e1;
+            --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        a { text-decoration: none; color: inherit; }
+        ul { list-style: none; }
+
+        /* Ajuste para que el menú fijo no tape los títulos al hacer click en los enlaces */
+        section { 
+            padding: 120px 20px; 
+            scroll-margin-top: 80px; 
+        }
+
+        /* =========================================================
+           ANIMACIONES (Clases para el Intersection Observer)
+           ========================================================= */
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+        .animate-on-scroll.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .delay-1 { transition-delay: 0.15s; }
+        .delay-2 { transition-delay: 0.3s; }
+        .delay-3 { transition-delay: 0.45s; }
+
+        /* =========================================================
+           BARRA DE NAVEGACIÓN (Sticky & Glassmorphism)
+           ========================================================= */
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding: 20px 0;
+            transition: var(--transition);
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: var(--text-main);
+        }
+        .logo span { color: var(--accent); }
+
+        .nav-links { display: flex; gap: 25px; align-items: center; }
+        .nav-links a {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            transition: var(--transition);
+            position: relative;
+        }
+        .nav-links a:hover { color: var(--accent); }
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            width: 0; height: 2px;
+            bottom: -5px; left: 0;
+            background-color: var(--accent);
+            transition: var(--transition);
+        }
+        .nav-links a:hover::after { width: 100%; }
+
+        .btn-nav {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary) !important;
+            padding: 8px 20px;
+            border-radius: 6px;
+        }
+        .btn-nav:hover { background: var(--primary); color: #fff !important; }
+
+        /* =========================================================
+           HERO SECTION (Fondo Dinámico)
+           ========================================================= */
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        #inicio {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 0 20px;
+            background: linear-gradient(-45deg, #0f172a, #1e293b, #0ea5e9, #0f172a);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            position: relative;
+        }
+        
+        #inicio::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.75); z-index: 0;
+        }
+
+        .hero-content { position: relative; z-index: 1; max-width: 1000px; margin-top: 60px; }
+        .hero-subtitle { color: var(--accent); font-weight: 800; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 15px; display: block; font-size: 0.9rem;}
+        .hero-content h1 { font-size: 3.5rem; margin-bottom: 25px; line-height: 1.15; letter-spacing: -1px; }
+        .hero-content p { font-size: 1.25rem; color: var(--text-muted); margin-bottom: 40px; max-width: 800px; margin-left: auto; margin-right: auto;}
+        
+        .btn-main {
+            background: var(--primary); color: #fff;
+            padding: 15px 40px; border-radius: 8px; font-size: 1.1rem; font-weight: 600;
+            box-shadow: 0 10px 20px rgba(14, 165, 233, 0.3); transition: var(--transition);
+            display: inline-block; border: none; cursor: pointer;
+        }
+        .btn-main:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(14, 165, 233, 0.5); background: var(--primary-hover); }
+
+        /* =========================================================
+           SECCIONES GENÉRICAS
+           ========================================================= */
+        .container { max-width: 1200px; margin: 0 auto; }
+        .section-header { text-align: center; margin-bottom: 70px; }
+        .section-header h2 { font-size: 2.8rem; margin-bottom: 15px; }
+        .section-header p { font-size: 1.1rem; color: var(--text-muted); max-width: 700px; margin: 0 auto; }
+        .divider { width: 80px; height: 4px; background: var(--accent); margin: 0 auto 20px auto; border-radius: 2px; }
+
+        /* Grids */
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 30px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; align-items: center;}
+        
+        /* Tarjetas de problemas/servicios */
+        .card {
+            background: var(--bg-card);
+            padding: 40px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: var(--transition);
+            height: 100%;
+        }
+        .card:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+        .card h3 { font-size: 1.4rem; margin-bottom: 15px; color: var(--primary); }
+        .card p { color: var(--text-muted); font-size: 0.95rem; }
+
+        /* =========================================================
+           BLOG / PRÓXIMOS EVENTOS
+           ========================================================= */
+        #eventos { background-color: #0b1120; }
+        .event-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+            border: 1px solid rgba(255,255,255,0.05);
+            height: 100%;
+        }
+        .event-card:hover { transform: translateY(-8px); box-shadow: 0 15px 30px rgba(0,0,0,0.5); }
+        
+        .event-date {
+            background: var(--primary);
+            color: #fff;
+            padding: 15px;
+            text-align: center;
+            font-weight: 800;
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+        }
+        .event-date span { display: block; font-size: 2rem; line-height: 1; }
+        
+        .event-info { padding: 30px; flex-grow: 1; display: flex; flex-direction: column; }
+        .event-info h3 { font-size: 1.3rem; margin-bottom: 15px; }
+        .event-info p { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 25px; flex-grow: 1; }
+        .btn-event { 
+            align-self: flex-start; background: transparent; color: var(--accent);
+            border: 1px solid var(--accent); padding: 8px 20px; border-radius: 6px; font-weight: 600;
+            transition: var(--transition);
+        }
+        .btn-event:hover { background: var(--accent); color: var(--bg-dark); }
+
+        /* =========================================================
+           COLEGIACIÓN Y PRECIOS
+           ========================================================= */
+        .tier-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 50px 40px;
+            text-align: center;
+            position: relative;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: var(--transition);
+            display: flex; flex-direction: column;
+        }
+        .tier-card.featured {
+            background: linear-gradient(180deg, var(--bg-card) 0%, rgba(14, 165, 233, 0.1) 100%);
+            border-color: var(--primary);
+            transform: scale(1.05);
+            z-index: 10;
+        }
+        .tier-card.featured:hover { transform: scale(1.05) translateY(-10px); }
+        .tier-badge {
+            background: var(--accent); color: var(--bg-dark);
+            position: absolute; top: 0; left: 0; width: 100%;
+            padding: 8px 0; font-size: 0.85rem; font-weight: 800; text-transform: uppercase;
+            border-top-left-radius: 12px; border-top-right-radius: 12px;
+        }
+        .tier-card h3 { font-size: 1.8rem; margin: 20px 0 15px; }
+        .tier-features { margin-bottom: 40px; text-align: left; flex-grow: 1; }
+        .tier-features li { padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.95rem; display: flex; gap: 10px; }
+        .tier-features li::before { content: '✓'; color: var(--primary); font-weight: bold; }
+
+        /* =========================================================
+           FOOTER
+           ========================================================= */
+        footer {
+            background: #020617;
+            padding: 60px 20px 30px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            text-align: center;
+        }
+        .footer-logo { font-size: 1.8rem; font-weight: 800; margin-bottom: 10px; }
+        .footer-logo span { color: var(--accent); }
+        .footer-authors { color: var(--text-muted); font-size: 0.9rem; margin-top: 40px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .nav-links { display: none; }
+            .hero-content h1 { font-size: 2.5rem; }
+            .grid-2 { grid-template-columns: 1fr; gap: 40px; }
+            .tier-card.featured { transform: scale(1); }
+            .tier-card.featured:hover { transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body>
+
+    <header id="navbar">
+        <div class="nav-container">
+            <div class="logo">COIICV <span>.</span></div>
+            <nav class="nav-links">
+                <a href="#inicio">Inicio</a>
+                <a href="#identidad">Identidad</a>
+                <a href="#problemas">El Reto</a>
+                <a href="#ambitos">Ámbitos</a>
+                <a href="#servicios">Servicios</a>
+                <a href="#eventos">Eventos</a>
+                <a href="#colegiacion">Colegiación</a>
+                <a href="#colegiacion" class="btn-nav">Acceso Socios</a>
+            </nav>
+        </div>
+    </header>
+
+    <section id="inicio">
+        <div class="hero-content animate-on-scroll">
+            <span class="hero-subtitle">Institución de Derecho Público</span>
+            <h1>Colegio Oficial de Ingenieros en Informática de la Comunidad Valenciana</h1>
+            <p>Representamos, organizamos y defendemos a los profesionales del sector de las tecnologías de la información. Promovemos un ejercicio responsable, ético y técnicamente competente. </p>
+            <a href="#colegiacion" class="btn-main">Únete al Colegio</a>
+        </div>
+    </section>
+
+    <section id="identidad" style="background-color: #0b1120;">
+        <div class="container">
+            <div class="grid-2">
+                <div class="animate-on-scroll">
+                    <h2 style="font-size: 2.5rem; margin-bottom: 15px;">Nuestra Misión</h2>
+                    <div class="divider" style="margin-left: 0;"></div>
+                    <p style="color: var(--text-muted); font-size: 1.1rem;">Nuestra misión principal es garantizar que los profesionales informáticos desarrollen su actividad con los más altos estándares de calidad, seguridad y responsabilidad. Actuamos como representantes del colectivo ante las administraciones públicas, empresas y la sociedad en general. </p>
+                </div>
+                <div class="animate-on-scroll delay-1">
+                    <h2 style="font-size: 2.5rem; margin-bottom: 15px;">Nuestra Visión</h2>
+                    <div class="divider" style="margin-left: 0;"></div>
+                    <p style="color: var(--text-muted); font-size: 1.1rem;">Aspiramos a consolidarnos como el organismo de referencia que contribuya al desarrollo de una profesión más organizada. Buscamos fomentar la colaboración entre profesionales, universidades y empresas para impulsar el desarrollo tecnológico y la innovación en nuestra región. </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="problemas">
+        <div class="container">
+            <div class="section-header animate-on-scroll">
+                <h2>¿Por qué un Colegio Profesional?</h2>
+                <div class="divider"></div>
+                <p>La informática es un elemento clave para el funcionamiento de la sociedad moderna. Sin embargo, nos enfrentamos a desafíos estructurales que requieren una regulación inmediata.</p>
+            </div>
+
+            <div class="grid-3">
+                <div class="card animate-on-scroll delay-1">
+                    <h3>🛡️ Intrusismo Profesional</h3>
+                    <p>Fenómeno que se produce cuando personas sin formación universitaria específica realizan tareas propias de profesionales cualificados. Esto devalúa la calidad técnica y precariza el sector. </p>
+                </div>
+                <div class="card animate-on-scroll delay-2">
+                    <h3>🎓 Falta de Reconocimiento</h3>
+                    <p>A diferencia de la medicina o la abogacía, el título no garantiza una posición diferenciada en el mercado. Buscamos poner en valor los años de estudio y sólida base científica. </p>
+                </div>
+                <div class="card animate-on-scroll delay-3">
+                    <h3>⚠️ Riesgos en Sistemas Críticos</h3>
+                    <p>Infraestructuras esenciales como hospitales, bancos y redes de telecomunicaciones dependen de software complejo. Un fallo técnico puede comprometer vidas y generar pérdidas millonarias. </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="ambitos" style="background-color: #0b1120;">
+        <div class="container">
+            <div class="section-header animate-on-scroll">
+                <h2>Ámbitos de Actuación</h2>
+                <div class="divider"></div>
+                <p>El colegio abarca todas las actividades relacionadas con el desarrollo, gestión y mantenimiento de tecnologías digitales. </p>
+            </div>
+
+            <div class="grid-3">
+                <div class="card animate-on-scroll delay-1">
+                    <h3>💻 Ingeniería de Software</h3>
+                    <p>Análisis, diseño de sistemas informáticos, desarrollo de aplicaciones y arquitectura de sistemas complejos. </p>
+                </div>
+                <div class="card animate-on-scroll delay-2">
+                    <h3>🔒 Ciberseguridad</h3>
+                    <p>Realización de auditorías de seguridad informática, gestión de incidentes y análisis de vulnerabilidades. </p>
+                </div>
+                <div class="card animate-on-scroll delay-3">
+                    <h3>📊 Datos e IA</h3>
+                    <p>Gestión de grandes volúmenes de datos, analítica avanzada y desarrollo de modelos de inteligencia artificial. </p>
+                </div>
+                <div class="card animate-on-scroll delay-1" style="grid-column: span 1;">
+                    <h3>☁️ Sistemas y Redes</h3>
+                    <p>Administración de servidores, redes de telecomunicaciones, infraestructuras tecnológicas y computación en la nube. </p>
+                </div>
+                <div class="card animate-on-scroll delay-2" style="grid-column: span 2;">
+                    <h3>💡 Consultoría Tecnológica</h3>
+                    <p>Dirección de proyectos, transformación digital de empresas y realización de peritaje informático en procesos judiciales. </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="servicios">
+        <div class="container">
+            <div class="section-header animate-on-scroll">
+                <h2>Servicios al Colegiado</h2>
+                <div class="divider"></div>
+                <p>Ofrecemos servicios que aportan valor real, facilitan el ejercicio de la profesión y mejoran la calidad del trabajo tecnológico. </p>
+            </div>
+
+            <div class="grid-3">
+                <div class="card animate-on-scroll delay-1">
+                    <h3>⚖️ Asesoramiento Jurídico</h3>
+                    <p>Orientación especializada en conflictos laborales, contratos tecnológicos, propiedad intelectual de software y protección de datos. </p>
+                </div>
+                <div class="card animate-on-scroll delay-2">
+                    <h3>📚 Formación Continua</h3>
+                    <p>Programas de actualización técnica, cursos y seminarios especializados para garantizar un alto nivel de cualificación. </p>
+                </div>
+                <div class="card animate-on-scroll delay-3">
+                    <h3>💼 Bolsa de Empleo Exclusiva</h3>
+                    <p>Conexión directa mediante plataformas con empresas e instituciones que buscan perfiles tecnológicos altamente cualificados. </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="eventos" style="background-color: #0b1120;">
+        <div class="container">
+            <div class="section-header animate-on-scroll">
+                <h2>Próximos Eventos y Actualidad</h2>
+                <div class="divider"></div>
+                <p>Nuestra agenda para conectar profesionales, divulgar conocimiento y reconocer la excelencia en la tecnología. </p>
+            </div>
+
+            <div class="grid-3">
+                <div class="event-card animate-on-scroll delay-1">
+                    <div class="event-date"><span>15</span> NOV</div>
+                    <div class="event-info">
+                        <h3>Congreso Tecnológico Regional</h3>
+                        <p>El punto de encuentro por excelencia para los profesionales. Ponencias magistrales, mesas redondas y talleres prácticos (workshops). </p>
+                        <a href="#" class="btn-event">Más información</a>
+                    </div>
+                </div>
+
+                <div class="event-card animate-on-scroll delay-2">
+                    <div class="event-date"><span>22</span> NOV</div>
+                    <div class="event-info">
+                        <h3>Premios a la Excelencia</h3>
+                        <p>Galardones anuales para reconocer proyectos excepcionales, jóvenes talentos y la excelencia técnica en ciberseguridad. </p>
+                        <a href="#" class="btn-event">Inscribir Proyecto</a>
+                    </div>
+                </div>
+
+                <div class="event-card animate-on-scroll delay-3">
+                    <div class="event-date"><span>05</span> DIC</div>
+                    <div class="event-info">
+                        <h3>Divulgación STEM en Institutos</h3>
+                        <p>Programa de charlas interactivas para inspirar a futuras generaciones y desmentir estereotipos sobre las carreras tecnológicas. </p>
+                        <a href="#" class="btn-event">Ser Voluntario</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="colegiacion">
+        <div class="container">
+            <div class="section-header animate-on-scroll">
+                <h2>Categorías de Miembros</h2>
+                <div class="divider"></div>
+                <p>Un sistema de membresía que ordena la profesión, reconoce la formación académica y se financia mediante cuotas de inscripción. </p>
+            </div>
+
+            <div class="grid-3">
+                <div class="tier-card animate-on-scroll delay-1">
+                    <h3>Pre-colegiado</h3>
+                    <ul class="tier-features">
+                        <li>Estudiantes cursando estudios relacionados con informática </li>
+                        <li>Acceso a eventos y actividades de formación </li>
+                        <li>Programas de orientación laboral temprana </li>
+                        <li>Facilita la transición de la academia al mercado </li>
+                    </ul>
+                    <a href="#" class="btn-nav" style="text-align:center;">Solicitar Acceso</a>
+                </div>
+
+                <div class="tier-card featured animate-on-scroll delay-2">
+                    <div class="tier-badge">Modalidad Oficial</div>
+                    <h3>Colegiado Titulado</h3>
+                    <ul class="tier-features">
+                        <li>Profesionales con titulación universitaria afín </li>
+                        <li>Acceso completo a todos los servicios del colegio </li>
+                        <li>Participación plena en órganos de gobierno </li>
+                        <li>Responsabilidad técnica en proyectos críticos </li>
+                    </ul>
+                    <a href="#" class="btn-main" style="text-align:center;">Iniciar Colegiación</a>
+                </div>
+
+                <div class="tier-card animate-on-scroll delay-3">
+                    <h3>Colegiado Asociado</h3>
+                    <ul class="tier-features">
+                        <li>Profesionales sin titulación universitaria específica </li>
+                        <li>Acreditación mediante experiencia profesional </li>
+                        <li>Acceso a programas formativos y redes de contacto </li>
+                        <li>Limitaciones institucionales en órganos de gobierno </li>
+                    </ul>
+                    <a href="#" class="btn-nav" style="text-align:center;">Solicitar Acceso</a>
+                </div>
+            </div>
+            
+            <div class="animate-on-scroll" style="text-align: center; margin-top: 40px; color: var(--text-muted); font-size: 0.95rem;">
+                *También contamos con la categoría de <strong>Socios Corporativos</strong> para empresas e instituciones del sector tecnológico. </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-logo">COIICV <span>.</span></div>
+            <p style="color: var(--text-muted); max-width: 500px; margin: 0 auto;">El colegio no es el final del camino, sino el cimiento firme sobre el cual la ingeniería informática seguirá construyendo el progreso del mañana. </p>
+            
+            <div class="footer-authors">
+                <p>Práctica 2 - Deontología y profesionalismo </p>
+                <p>Desarrollado por: <strong>Silvia Medina Linares</strong> y <strong>Nicolás Tormo Aliaga</strong> </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Animaciones al hacer scroll
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.15
+        };
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target); // Dejar de observar una vez animado
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.animate-on-scroll').forEach(element => {
+            observer.observe(element);
+        });
+
+        // Efecto cristal/sombra extra en el navbar al bajar
+        window.addEventListener('scroll', () => {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.style.boxShadow = '0 10px 30px rgba(0,0,0,0.5)';
+                navbar.style.background = 'rgba(15, 23, 42, 0.95)';
+            } else {
+                navbar.style.boxShadow = 'none';
+                navbar.style.background = 'rgba(15, 23, 42, 0.85)';
+            }
+        });
+    </script>
+
+</body>
+</html>
